@@ -17,14 +17,6 @@ from .lz77 import uncompress_lz77
 
 
 class Mobi:
-    def parse(self):
-        """ reads in the file, then parses record tables"""
-        self.contents = self.f.read()
-        self.f.close()
-        self.header = self.parseHeader()
-        self.records = self.parseRecordInfoList()
-        self.readRecord0()
-
     def readRecord(self, recordnum, disable_compression=False):
         if self.config:
             if self.config['palmdoc']['Compression'] == 1 or disable_compression:
@@ -55,14 +47,17 @@ class Mobi:
 
     def __init__(self, filename):
         try:
-            if isinstance(filename, str):
-                self.f = open(filename, "rb")
-            else:
-                self.f = filename
+            with open(filename, 'rb') as file:
+                self.contents = file.read()
+        except TypeError:
+            self.contents = filename.read()
         except IOError as e:
             sys.stderr.write("Could not open %s! " % filename)
             raise e
         self.offset = 0
+        self.header = self.parseHeader()
+        self.records = self.parseRecordInfoList()
+        self.readRecord0()
 
     def __iter__(self):
         if not self.config:

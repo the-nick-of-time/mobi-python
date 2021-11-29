@@ -12,13 +12,14 @@ import os
 import unittest
 from struct import *
 from pprint import pprint
-import utils
-from lz77 import uncompress_lz77
+from . import utils
+from .lz77 import uncompress_lz77
 
 class Mobi:
   def parse(self):
     """ reads in the file, then parses record tables"""
     self.contents = self.f.read();
+    self.f.close()
     self.header = self.parseHeader();
     self.records = self.parseRecordInfoList();
     self.readRecord0()
@@ -52,7 +53,7 @@ class Mobi:
         self.f = open(filename, "rb");
       else:
         self.f = filename;
-    except IOError,e:
+    except IOError as e:
       sys.stderr.write("Could not open %s! " % filename);
       raise e;
     self.offset = 0;
@@ -230,7 +231,7 @@ class Mobi:
     self.offset += resultsDict['header length'];
 
     def onebits(x, width=16):
-        return len(filter(lambda x: x == "1", (str((x>>i)&1) for i in xrange(width-1,-1,-1))));
+        return len(list(filter(lambda x: x == "1", (str((x>>i)&1) for i in range(width-1,-1,-1)))));
 
     resultsDict['extra bytes'] = 2*onebits(unpack(">H", self.contents[self.offset-2:self.offset])[0] & 0xFFFE)
 
